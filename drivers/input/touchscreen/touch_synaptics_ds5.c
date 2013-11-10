@@ -462,6 +462,12 @@ static void touch_fw_upgrade_func(struct work_struct *work_fw_upgrade)
 	saved_state = ts->curr_pwr_state;
 	if (ts->curr_pwr_state == POWER_ON) {
 		disable_irq(ts->client->irq);
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+		if (irq_wake) {
+			irq_wake = false;
+			disable_irq_wake(ts->client->irq);
+		}
+#endif
 	}
 	else {
 		touch_power_cntl(ts, POWER_ON);
@@ -478,6 +484,12 @@ static void touch_fw_upgrade_func(struct work_struct *work_fw_upgrade)
 	if (saved_state == POWER_ON) {
 		touch_ic_init(ts);
 		enable_irq(ts->client->irq);
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+		if (!irq_wake) {
+			irq_wake = false;
+			enable_irq_wake(ts->client->irq);
+		}
+#endif
 	}
 	else {
 		touch_power_cntl(ts, POWER_OFF);
