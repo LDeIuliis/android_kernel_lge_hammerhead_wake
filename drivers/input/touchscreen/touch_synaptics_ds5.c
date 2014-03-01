@@ -46,6 +46,9 @@
 #include <linux/input/doubletap2wake.h>
 #endif
 #endif
+#ifdef CONFIG_PWRKEY_SUSPEND
+#include <linux/qpnp/power-on.h>
+#endif
 
 static struct workqueue_struct *synaptics_wq;
 
@@ -1682,6 +1685,10 @@ static int lcd_notifier_callback(struct notifier_block *this,
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
 #endif
+#endif
+#ifdef CONFIG_PWRKEY_SUSPEND
+	if (pwrkey_pressed)
+		prevent_sleep = false;
 #endif
 
 	TOUCH_DEBUG_TRACE("%s: event = %lu\n", __func__, event);
