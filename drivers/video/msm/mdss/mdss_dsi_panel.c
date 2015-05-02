@@ -47,6 +47,8 @@
 
 #define GAMMA_COMPAT 11
 
+static int mdss_panel_id = PANEL_QCOM;
+
 static struct mdss_dsi_ctrl_pdata *local_ctrl;
 static struct work_struct send_cmds_work;
 static struct kobject *module_kobj;
