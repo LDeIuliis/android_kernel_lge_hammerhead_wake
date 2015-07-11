@@ -26,8 +26,13 @@
 #include <linux/debugfs.h>
 #include <linux/ctype.h>
 #endif
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 #include <linux/input/sweep2wake.h>
+#endif
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#endif
 #endif
 
 
@@ -236,6 +241,19 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 	int rc = 0;
 #ifndef CONFIG_MACH_LGE
 	int i;
+
+
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+	bool prevent_sleep = false;
+#endif
+#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
+	prevent_sleep = (s2w_switch > 0);
+#endif
+#if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+#endif
+
 #endif
 
 	if (pdata == NULL) {
@@ -309,8 +327,8 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			mdss_panel_id == PANEL_LGE_JDI_ORISE_CMD ||
 			mdss_panel_id == PANEL_LGE_JDI_NOVATEK_VIDEO ||
 			mdss_panel_id == PANEL_LGE_JDI_NOVATEK_CMD) {
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-			if (s2w_switch == 0)
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+			if (!prevent_sleep)
 #endif
 			{
 				if (gpio_is_valid(ctrl_pdata->disp_en_gpio))
@@ -319,8 +337,8 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 				gpio_set_value((ctrl_pdata->rst_gpio), 0);
 			}
 		} else {
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-			if (s2w_switch == 0)
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+			if (!prevent_sleep)
 #endif
 			{
 				gpio_set_value((ctrl_pdata->rst_gpio), 0);
@@ -507,7 +525,17 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
-
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+	bool prevent_sleep = false;
+#endif
+#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
+	prevent_sleep = (s2w_switch > 0);
+#endif
+#if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+	prevent_sleep = prevent_sleep || (dt2w_switch > 0);
+#endif
+#endif
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
@@ -523,13 +551,13 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 	if (!gpio_get_value(ctrl->disp_en_gpio))
 		return 0;
 
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-	if (s2w_switch) {
+#ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
+	if (prevent_sleep) {
 		ctrl->off_cmds.cmds[1].payload[0] = 0x11;
 	} else {
 		ctrl->off_cmds.cmds[1].payload[0] = 0x10;
 	}
-	pr_info("[sweep2wake] payload = %x \n", ctrl->off_cmds.cmds[1].payload[0]);
+	pr_info("[prevent_touchscreen_sleep]: payload = %x \n", ctrl->off_cmds.cmds[1].payload[0]);
 #endif
 
 

@@ -1040,18 +1040,19 @@ config TOUCHSCREEN_CHARGER_NOTIFY
 
 
 config TOUCHSCREEN_SWEEP2WAKE
-        tristate "Sweep2Wake for touchscreens"
-	select TOUCHSCREEN_SWEEP2WAKE_PREVENT_SLEEP
-        default n
-	prompt "Sweep2wake power key device?"
-	depends on TOUCHSCREEN_SWEEP2WAKE
-	default TOUCHSCREEN_SWEEP2WAKE_QPNP_PON if MACH_MSM8974_HAMMERHEAD
+	tristate "Sweep2Wake for touchscreens"
+	select TOUCHSCREEN_PREVENT_SLEEP
+	default n
 
-config TOUCHSCREEN_SWEEP2WAKE_PREVENT_SLEEP
-        bool "Inihibit sleep on modified touchscreen drivers"
+config TOUCHSCREEN_DOUBLETAP2WAKE
+	tristate "DoubleTap2Wake for touchscreens"
+	select TOUCHSCREEN_PREVENT_SLEEP
+	default n
+
+config TOUCHSCREEN_PREVENT_SLEEP
+	bool "Inihibit sleep on modified touchscreen drivers"
 	default n
 	help
-	  This allows sweep2wake to disable the sleep function of modified
-	  touchscreen drivers.
+	  This disables the sleep function of modified touchscreen drivers.
 
 endif
